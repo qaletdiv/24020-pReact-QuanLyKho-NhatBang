@@ -9,3 +9,5 @@ npm i @prisma/client && npm i -D prisma
 npx prisma init
 
 npx prisma migrate dev --name tao_he_thong_quan_ly_kho
+
+npx prisma generate

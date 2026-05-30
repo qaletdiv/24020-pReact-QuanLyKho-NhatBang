@@ -21,15 +21,17 @@
   "homepage": "https://github.com/qaletdiv/24020-pReact-QuanLyKho-NhatBang#readme",
   "description": "",
   "dependencies": {
-    "@prisma/client": "^7.8.0",
+    "@prisma/client": "^5.12.0",
+    "bcrypt": "^6.0.0",
     "dotenv": "^17.4.2",
     "express": "^5.2.1"
   },
   "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
     "@types/express": "^5.0.6",
     "@types/node": "^25.9.1",
     "nodemon": "^3.1.14",
-    "prisma": "^7.8.0",
+    "prisma": "^5.12.0",
     "tsx": "^4.22.3",
     "typescript": "^6.0.3"
   }
