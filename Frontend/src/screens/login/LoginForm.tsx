@@ -32,11 +32,10 @@ export const LoginForm: React.FC = () => {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault()
-        // Gửi data với key 'emailOrName' trùng khớp với destructuring ở Backend
+       
         loginMutation.mutate({ emailOrName: username, password })
     }
 
-    // Hàm bóc tách lỗi an toàn từ Axios trả về
     const getErrorMessage = (): string => {
         if (!loginMutation.isError) return ''
 

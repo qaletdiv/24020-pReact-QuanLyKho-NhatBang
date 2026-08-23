@@ -1,7 +1,29 @@
-import {type Request, type Response } from 'express'
+import { type Request, type Response } from 'express'
 import { prisma } from '../config/prisma.js'
 
+export const getSuppliers = async (req: Request, res: Response) => {
+  try {
+    const { keyword } = req.query;
+    const whereCondition: any = {};
 
+    if (keyword && typeof keyword === 'string' && keyword.trim() !== '') {
+      whereCondition.OR = [
+        { name: { contains: keyword.trim(), mode: 'insensitive' } },
+        { code: { contains: keyword.trim(), mode: 'insensitive' } },
+      ];
+    }
+
+    const suppliers = await prisma.supplier.findMany({
+      where: whereCondition,
+      orderBy: { id: 'desc' },
+    });
+
+    return res.status(200).json(suppliers);
+  } catch (error) {
+    console.error('Lỗi khi lấy danh sách nhà cung cấp:', error);
+    return res.status(500).json({ message: 'Lỗi hệ thống khi lấy danh sách!' });
+  }
+};
 export const createSupplier = async (req: Request, res: Response) => {
     try {
         const { name, code, phone, email, address } = req.body
@@ -12,10 +34,13 @@ export const createSupplier = async (req: Request, res: Response) => {
 
         let finalCode = code ? String(code).trim() : ''
 
-     
+
         if (!finalCode) {
-            const count = await prisma.supplier.count()
-            finalCode = `NCC-${String(count + 1).padStart(3, '0')}` 
+            const lastSupplier = await prisma.supplier.findFirst({
+                orderBy: { id: 'desc' },
+            });
+            const nextId = (lastSupplier?.id || 0) + 1;
+            finalCode = `NCC-${String(nextId).padStart(3, '0')}`;
         } else {
 
             const existingSupplier = await prisma.supplier.findUnique({
