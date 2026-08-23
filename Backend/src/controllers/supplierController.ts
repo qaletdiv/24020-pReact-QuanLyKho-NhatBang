@@ -24,6 +24,27 @@ export const getSuppliers = async (req: Request, res: Response) => {
     return res.status(500).json({ message: 'Lỗi hệ thống khi lấy danh sách!' });
   }
 };
+export const getSupplierById = async (req: Request, res: Response) => {
+  try {
+    const id = Number(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ message: 'ID nhà cung cấp không hợp lệ!' });
+    }
+
+    const supplier = await prisma.supplier.findUnique({
+      where: { id },
+    });
+
+    if (!supplier) {
+      return res.status(404).json({ message: 'Không tìm thấy nhà cung cấp!' });
+    }
+
+    return res.status(200).json(supplier);
+  } catch (error) {
+    console.error('Lỗi khi lấy chi tiết nhà cung cấp:', error);
+    return res.status(500).json({ message: 'Lỗi hệ thống phía Server!' });
+  }
+};
 export const createSupplier = async (req: Request, res: Response) => {
     try {
         const { name, code, phone, email, address } = req.body
@@ -70,3 +91,62 @@ export const createSupplier = async (req: Request, res: Response) => {
         return res.status(500).json({ message: 'Lỗi hệ thống khi tạo nhà cung cấp!' })
     }
 }
+export const updateSupplier = async (req: Request, res: Response) => {
+  try {
+    const id = Number(req.params.id);
+    const { name, phone, email, address } = req.body;
+
+    if (isNaN(id)) {
+      return res.status(400).json({ message: 'ID nhà cung cấp không hợp lệ!' });
+    }
+
+    const existing = await prisma.supplier.findUnique({ where: { id } });
+    if (!existing) {
+      return res.status(404).json({ message: 'Không tìm thấy nhà cung cấp để cập nhật!' });
+    }
+
+    const updatedSupplier = await prisma.supplier.update({
+      where: { id },
+      data: {
+        name: name ? String(name).trim() : existing.name,
+        phone: phone !== undefined ? String(phone).trim() : existing.phone,
+        email: email !== undefined ? String(email).trim() : existing.email,
+        address: address !== undefined ? String(address).trim() : existing.address,
+      },
+    });
+
+    return res.status(200).json({
+      message: 'Cập nhật nhà cung cấp thành công!',
+      supplier: updatedSupplier,
+    });
+  } catch (error) {
+    console.error('Lỗi khi cập nhật nhà cung cấp:', error);
+    return res.status(500).json({ message: 'Lỗi hệ thống khi cập nhật!' });
+  }
+};
+
+export const deleteSupplier = async (req: Request, res: Response) => {
+  try {
+    const id = Number(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ message: 'ID nhà cung cấp không hợp lệ!' });
+    }
+
+    const hasOrders = await prisma.purchaseOrder.findFirst({
+      where: { supplierId: id },
+    });
+
+    if (hasOrders) {
+      return res.status(400).json({
+        message: 'Không thể xóa nhà cung cấp đã có phát sinh Đơn mua hàng trong hệ thống!',
+      });
+    }
+
+    await prisma.supplier.delete({ where: { id } });
+
+    return res.status(200).json({ message: 'Xóa nhà cung cấp thành công!' });
+  } catch (error) {
+    console.error('Lỗi khi xóa nhà cung cấp:', error);
+    return res.status(500).json({ message: 'Lỗi hệ thống khi xóa nhà cung cấp!' });
+  }
+};
