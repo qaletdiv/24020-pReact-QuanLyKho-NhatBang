@@ -8,8 +8,8 @@ export const getSuppliers = async (req: Request, res: Response) => {
 
     if (keyword && typeof keyword === 'string' && keyword.trim() !== '') {
       whereCondition.OR = [
-        { name: { contains: keyword.trim(), mode: 'insensitive' } },
-        { code: { contains: keyword.trim(), mode: 'insensitive' } },
+        { name: { contains: keyword.trim()} },
+        { code: { contains: keyword.trim() } },
       ];
     }
 
