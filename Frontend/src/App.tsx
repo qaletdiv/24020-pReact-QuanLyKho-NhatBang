@@ -14,7 +14,7 @@ function App() {
         {/* <Route path="/purchase-orders" element={<PurchaseOrderListScreen />} /> */}
         <Route element={<ProtectedRoute />}>
           {/* <Route path="/" element={<Navigate to="/purchase-orders" replace />} /> */}
-          <Route path="/" element={<Navigate to="/purchase-orders" replace />} />
+          {/* <Route path="/" element={<Navigate to="/purchase-orders" replace />} /> */}
           <Route path="/purchase-orders" element={<PurchaseOrderListScreen />} />
           <Route path="/purchase-orders/create" element={<PurchaseOrderDetailScreen />} />
           <Route path="/purchase-orders/:id" element={<PurchaseOrderDetailScreen />} />

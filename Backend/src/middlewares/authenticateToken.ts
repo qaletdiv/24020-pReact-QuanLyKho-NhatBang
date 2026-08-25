@@ -49,7 +49,7 @@ const authenticateToken = async(req :authenticatedRequest, res : Response ,next:
                 res.status(401).json({ message: "Xác thực thất bại !" });
                 return;
             }
-            req.user = { id: user.id, role: user.role };
+            req.user = { id: user.id,username: user.username, role: user.role };
             next();
         } catch (error) {
             console.error("Lỗi truy vấn người dùng trong Authenticate Token:", error);

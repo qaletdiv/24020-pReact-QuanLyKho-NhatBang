@@ -43,7 +43,6 @@ interface OrderFormData {
   items: OrderRowItem[]
 }
 
-// COMPONENT FORM CON (State được khởi tạo trực tiếp từ defaultData, không cần useEffect)
 interface FormViewProps {
   id?: string
   isEditMode: boolean
@@ -64,7 +63,7 @@ const FormView: React.FC<FormViewProps> = ({
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
-  // State khởi tạo ngay lập tức, không gây cascading renders
+
   const [formData, setFormData] = useState<OrderFormData>(defaultData)
   const isReadOnly = isEditMode && formData.status !== 'Draft'
 
