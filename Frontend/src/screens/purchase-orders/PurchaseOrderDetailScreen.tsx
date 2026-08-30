@@ -49,7 +49,8 @@ interface FormViewProps {
   defaultData: OrderFormData
   suppliers: SupplierOption[]
   products: ProductOption[]
-  orderCode?: string
+  orderCode?: string,
+  currentUserId?: number
 }
 
 const FormView: React.FC<FormViewProps> = ({
@@ -59,6 +60,7 @@ const FormView: React.FC<FormViewProps> = ({
   suppliers,
   products,
   orderCode,
+  currentUserId
 }) => {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
@@ -117,6 +119,7 @@ const FormView: React.FC<FormViewProps> = ({
         supplierId: Number(formData.supplierId),
         note: formData.note,
         issueDate: formData.issueDate,
+        userId : currentUserId ,
         items: formData.items.map((i) => ({
           productId: i.productId,
           quantity: i.quantity,
@@ -304,6 +307,7 @@ export const PurchaseOrderDetailScreen: React.FC = () => {
           suppliers={suppliers}
           products={products}
           orderCode={orderDetail?.orderCode}
+          currentUserId={currentUser?.id}
         />
       </main>
     </div>

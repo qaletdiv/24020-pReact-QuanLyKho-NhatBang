@@ -115,7 +115,7 @@ export const getPurchaseOrderById = async ( req : Request , res : Response) => {
             orderCode : order.code ,
             supplierId : order.supplierId ,
             supplierName : order.supplier.name ,
-            createByName : order.user.username ,
+            createdByName : order.user.username ,
             purchaseDate : order.issueDate ,
             note : order.note || '' ,
             status : order.status ,
