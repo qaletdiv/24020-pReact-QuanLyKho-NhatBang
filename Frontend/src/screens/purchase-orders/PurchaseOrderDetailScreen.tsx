@@ -49,7 +49,7 @@ interface FormViewProps {
   defaultData: OrderFormData
   suppliers: SupplierOption[]
   products: ProductOption[]
-  orderCode?: string,
+  orderCode?: string
   currentUserId?: number
 }
 
@@ -60,11 +60,10 @@ const FormView: React.FC<FormViewProps> = ({
   suppliers,
   products,
   orderCode,
-  currentUserId
+  currentUserId,
 }) => {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-
 
   const [formData, setFormData] = useState<OrderFormData>(defaultData)
   const isReadOnly = isEditMode && formData.status !== 'Draft'
@@ -119,7 +118,7 @@ const FormView: React.FC<FormViewProps> = ({
         supplierId: Number(formData.supplierId),
         note: formData.note,
         issueDate: formData.issueDate,
-        userId : currentUserId ,
+        userId: currentUserId,
         items: formData.items.map((i) => ({
           productId: i.productId,
           quantity: i.quantity,
@@ -172,7 +171,6 @@ const FormView: React.FC<FormViewProps> = ({
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 md:p-8">
-
       <div className="flex justify-between items-center pb-6 mb-6 border-b border-gray-200">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
@@ -252,14 +250,22 @@ export const PurchaseOrderDetailScreen: React.FC = () => {
   const isEditMode = Boolean(id && id !== 'create')
   const currentUser = useSelector((state: RootState) => state.auth?.user)
 
+  // Gọi API suppliers kèm ép kiểu tường minh
   const { data: suppliers = [] } = useQuery<SupplierOption[]>({
     queryKey: ['suppliers'],
-    queryFn: getSuppliers,
+    queryFn: async (): Promise<SupplierOption[]> => {
+      const res = await getSuppliers()
+      return (res || []) as SupplierOption[]
+    },
   })
 
+  // Gọi API products kèm ép kiểu tường minh tránh lỗi NoInfer/never[]
   const { data: products = [] } = useQuery<ProductOption[]>({
     queryKey: ['products'],
-    queryFn: getProducts,
+    queryFn: async (): Promise<ProductOption[]> => {
+      const res = await getProducts()
+      return (res || []) as ProductOption[]
+    },
   })
 
   const { data: orderDetail, isLoading: isLoadingDetail } = useQuery({
@@ -272,7 +278,9 @@ export const PurchaseOrderDetailScreen: React.FC = () => {
     return (
       <div className="min-h-screen bg-gray-50">
         <Header />
-        <div className="max-w-7xl mx-auto py-12 text-center text-gray-500">Đang tải thông tin đơn hàng...</div>
+        <div className="max-w-7xl mx-auto py-12 text-center text-gray-500">
+          Đang tải thông tin đơn hàng...
+        </div>
       </div>
     )
   }
@@ -304,8 +312,8 @@ export const PurchaseOrderDetailScreen: React.FC = () => {
           id={id}
           isEditMode={isEditMode}
           defaultData={defaultData}
-          suppliers={suppliers}
-          products={products}
+          suppliers={suppliers as SupplierOption[]}
+          products={products as ProductOption[]}
           orderCode={orderDetail?.orderCode}
           currentUserId={currentUser?.id}
         />

@@ -5,6 +5,8 @@ import { LoginScreen } from './screens/login/LoginScreen'
 import {PurchaseOrderListScreen} from './screens/purchase-orders/PurchaseOrderListScreen'
 import { ProtectedRoute } from './components/auth/ProtectedRoute'
 import { PurchaseOrderDetailScreen } from './screens/purchase-orders/PurchaseOrderDetailScreen'
+import { ProductListScreen } from './screens/product/ProductListScreen'
+
 function App() {
   return (
     <BrowserRouter>
@@ -18,6 +20,8 @@ function App() {
           <Route path="/purchase-orders" element={<PurchaseOrderListScreen />} />
           <Route path="/purchase-orders/create" element={<PurchaseOrderDetailScreen />} />
           <Route path="/purchase-orders/:id" element={<PurchaseOrderDetailScreen />} />
+          
+          <Route path="/products" element={<ProductListScreen/>}/>
         </Route>
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>

@@ -1,6 +1,7 @@
 import { type Request, type Response } from "express";
 import { prisma } from "../config/prisma.js";
 
+
 export const getProducts = async (req: Request, res: Response) => {
   try {
     const { keyword } = req.query;
@@ -31,6 +32,7 @@ export const getProducts = async (req: Request, res: Response) => {
       code: item.code,
       price: Number(item.price),
       description: item.description,
+      sizeId: item.sizeId,
       sizeName: item.size?.sizeName || null,
       imageUrl: item.imageUrl,
     }));
@@ -41,6 +43,40 @@ export const getProducts = async (req: Request, res: Response) => {
     return res.status(500).json({ message: "Lỗi hệ thống phía Server!" });
   }
 };
+
+export const getProductById = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const productId = Number(id);
+
+    if (isNaN(productId)) {
+      return res.status(400).json({ message: "ID sản phẩm không hợp lệ!" });
+    }
+
+    const product = await prisma.product.findUnique({
+      where: { id: productId },
+      include: {
+        size: {
+          select: { id: true, sizeName: true },
+        },
+      },
+    });
+
+    if (!product) {
+      return res.status(404).json({ message: "Không tìm thấy sản phẩm!" });
+    }
+
+    return res.status(200).json({
+      ...product,
+      price: Number(product.price),
+      sizeName: product.size?.sizeName || null,
+    });
+  } catch (error) {
+    console.error("Lỗi khi lấy chi tiết sản phẩm:", error);
+    return res.status(500).json({ message: "Lỗi hệ thống phía Server!" });
+  }
+};
+
 
 export const createProduct = async (req: Request, res: Response) => {
   try {
@@ -88,41 +124,44 @@ export const createProduct = async (req: Request, res: Response) => {
   }
 };
 
-const updateProduct = async (req: Request, res: Response) => {
+
+export const updateProduct = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const productId = Number(id);
+
     if (isNaN(productId)) {
-      return res.status(400).json({ message: "Id sản phẩm không hợp lệ " });
+      return res.status(400).json({ message: "ID sản phẩm không hợp lệ!" });
     }
+
     const { name, code, price, description, sizeId, imageUrl } = req.body;
 
     const existingProduct = await prisma.product.findUnique({
-      where: {
-        id: productId,
-      },
+      where: { id: productId },
     });
+
     if (!existingProduct) {
       return res
         .status(404)
-        .json({ message: "Không tìm thấy sản phẩm cập nhật !" });
+        .json({ message: "Không tìm thấy sản phẩm cần cập nhật!" });
     }
+
     if (code) {
       const trimmedCode = String(code).trim();
       const duplicateCode = await prisma.product.findFirst({
         where: {
           code: trimmedCode,
-          Not: {
-            id: productId,
-          },
+          NOT: { id: productId },
         },
       });
+
       if (duplicateCode) {
         return res
           .status(400)
-          .json({ message: 'Mã sản phẩm "${trimmedCode}" đã được sử dụng!' });
+          .json({ message: `Mã sản phẩm "${trimmedCode}" đã được sử dụng!` });
       }
     }
+
     const updatedProduct = await prisma.product.update({
       where: { id: productId },
       data: {
@@ -139,9 +178,11 @@ const updateProduct = async (req: Request, res: Response) => {
         },
       },
     });
+
     return res.status(200).json({
+      message: "Cập nhật sản phẩm thành công!",
       product: {
-        ...updateProduct,
+        ...updatedProduct,
         price: Number(updatedProduct.price),
         sizeName: updatedProduct.size?.sizeName || null,
       },
@@ -151,5 +192,17 @@ const updateProduct = async (req: Request, res: Response) => {
     return res
       .status(500)
       .json({ message: "Lỗi hệ thống khi cập nhật sản phẩm!" });
+  }
+};
+
+export const getProductSizes = async (_req: Request, res: Response) => {
+  try {
+    const sizes = await prisma.productSize.findMany({
+      orderBy: { id: "asc" },
+    });
+    return res.status(200).json(sizes);
+  } catch (error) {
+    console.error("Lỗi khi lấy danh sách quy cách:", error);
+    return res.status(500).json({ message: "Lỗi hệ thống phía Server!" });
   }
 };
