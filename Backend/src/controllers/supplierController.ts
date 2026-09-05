@@ -7,9 +7,11 @@ export const getSuppliers = async (req: Request, res: Response) => {
     const whereCondition: any = {};
 
     if (keyword && typeof keyword === 'string' && keyword.trim() !== '') {
+      const search = keyword.trim();
       whereCondition.OR = [
-        { name: { contains: keyword.trim()} },
-        { code: { contains: keyword.trim() } },
+        { name: { contains: search } },
+        { code: { contains: search } },
+        { phone: { contains: search } },
       ];
     }
 
@@ -24,6 +26,8 @@ export const getSuppliers = async (req: Request, res: Response) => {
     return res.status(500).json({ message: 'Lỗi hệ thống khi lấy danh sách!' });
   }
 };
+
+
 export const getSupplierById = async (req: Request, res: Response) => {
   try {
     const id = Number(req.params.id);
@@ -45,56 +49,58 @@ export const getSupplierById = async (req: Request, res: Response) => {
     return res.status(500).json({ message: 'Lỗi hệ thống phía Server!' });
   }
 };
+
 export const createSupplier = async (req: Request, res: Response) => {
-    try {
-        const { name, code, phone, email, address } = req.body
+  try {
+    const { name, code, phone, email, address, note } = req.body;
 
-        if (!name || !String(name).trim()) {
-            return res.status(400).json({ message: 'Tên nhà cung cấp không được để trống!' })
-        }
-
-        let finalCode = code ? String(code).trim() : ''
-
-
-        if (!finalCode) {
-            const lastSupplier = await prisma.supplier.findFirst({
-                orderBy: { id: 'desc' },
-            });
-            const nextId = (lastSupplier?.id || 0) + 1;
-            finalCode = `NCC-${String(nextId).padStart(3, '0')}`;
-        } else {
-
-            const existingSupplier = await prisma.supplier.findUnique({
-                where: { code: finalCode },
-            })
-            if (existingSupplier) {
-                return res.status(400).json({ message: `Mã nhà cung cấp "${finalCode}" đã tồn tại!` })
-            }
-        }
-
-        const newSupplier = await prisma.supplier.create({
-            data: {
-                name: String(name).trim(),
-                code: finalCode,
-                phone: phone ? String(phone).trim() : '',
-                email: email ? String(email).trim() : '',
-                address: address ? String(address).trim() : '',
-            },
-        })
-
-        return res.status(201).json({
-            message: 'Tạo nhà cung cấp thành công!',
-            supplier: newSupplier,
-        })
-    } catch (error) {
-        console.error('Lỗi khi tạo nhà cung cấp:', error)
-        return res.status(500).json({ message: 'Lỗi hệ thống khi tạo nhà cung cấp!' })
+    if (!name || !String(name).trim()) {
+      return res.status(400).json({ message: 'Tên nhà cung cấp không được để trống!' });
     }
-}
+
+    let finalCode = code ? String(code).trim().toUpperCase() : '';
+
+    if (!finalCode) {
+      const lastSupplier = await prisma.supplier.findFirst({
+        orderBy: { id: 'desc' },
+      });
+      const nextId = (lastSupplier?.id || 0) + 1;
+      finalCode = `NCC-${String(nextId).padStart(3, '0')}`;
+    } else {
+      const existingSupplier = await prisma.supplier.findUnique({
+        where: { code: finalCode },
+      });
+      if (existingSupplier) {
+        return res.status(400).json({ message: `Mã nhà cung cấp "${finalCode}" đã tồn tại!` });
+      }
+    }
+
+    const newSupplier = await prisma.supplier.create({
+      data: {
+        name: String(name).trim(),
+        code: finalCode,
+        phone: phone && String(phone).trim() ? String(phone).trim() : null,
+        email: email && String(email).trim() ? String(email).trim() : null,
+        address: address && String(address).trim() ? String(address).trim() : null,
+        note: note && String(note).trim() ? String(note).trim() : null,
+      },
+    });
+
+    return res.status(201).json({
+      message: 'Tạo nhà cung cấp thành công!',
+      supplier: newSupplier,
+    });
+  } catch (error) {
+    console.error('Lỗi khi tạo nhà cung cấp:', error);
+    return res.status(500).json({ message: 'Lỗi hệ thống khi tạo nhà cung cấp!' });
+  }
+};
+
+
 export const updateSupplier = async (req: Request, res: Response) => {
   try {
     const id = Number(req.params.id);
-    const { name, phone, email, address } = req.body;
+    const { name, code, phone, email, address, note } = req.body;
 
     if (isNaN(id)) {
       return res.status(400).json({ message: 'ID nhà cung cấp không hợp lệ!' });
@@ -104,14 +110,29 @@ export const updateSupplier = async (req: Request, res: Response) => {
     if (!existing) {
       return res.status(404).json({ message: 'Không tìm thấy nhà cung cấp để cập nhật!' });
     }
+    if (code) {
+      const trimmedCode = String(code).trim().toUpperCase();
+      const duplicateCode = await prisma.supplier.findFirst({
+        where: {
+          code: trimmedCode,
+          NOT: { id },
+        },
+      });
+
+      if (duplicateCode) {
+        return res.status(400).json({ message: `Mã nhà cung cấp "${trimmedCode}" đã được sử dụng!` });
+      }
+    }
 
     const updatedSupplier = await prisma.supplier.update({
       where: { id },
       data: {
         name: name ? String(name).trim() : existing.name,
-        phone: phone !== undefined ? String(phone).trim() : existing.phone,
-        email: email !== undefined ? String(email).trim() : existing.email,
-        address: address !== undefined ? String(address).trim() : existing.address,
+        code: code ? String(code).trim().toUpperCase() : existing.code,
+        phone: phone !== undefined ? (phone ? String(phone).trim() : null) : existing.phone,
+        email: email !== undefined ? (email ? String(email).trim() : null) : existing.email,
+        address: address !== undefined ? (address ? String(address).trim() : null) : existing.address,
+        note: note !== undefined ? (note ? String(note).trim() : null) : existing.note,
       },
     });
 
@@ -124,6 +145,7 @@ export const updateSupplier = async (req: Request, res: Response) => {
     return res.status(500).json({ message: 'Lỗi hệ thống khi cập nhật!' });
   }
 };
+
 
 export const deleteSupplier = async (req: Request, res: Response) => {
   try {

@@ -14,6 +14,7 @@ export interface ProductItem {
   code: string;
   name: string;
   price: number;
+  sizeId?: number | null;
   sizeName: string | null;
   description?: string;
   imageUrl?: string;

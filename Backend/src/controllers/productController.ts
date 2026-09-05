@@ -206,3 +206,26 @@ export const getProductSizes = async (_req: Request, res: Response) => {
     return res.status(500).json({ message: "Lỗi hệ thống phía Server!" });
   }
 };
+export const createProductSize = async (req: Request, res: Response) => {
+  try {
+    const { sizeName } = req.body;
+
+    if (!sizeName || !String(sizeName).trim()) {
+      return res.status(400).json({ message: 'Tên quy cách không được để trống!' });
+    }
+
+    const newSize = await prisma.productSize.create({
+      data: {
+        sizeName: String(sizeName).trim(),
+      },
+    });
+
+    return res.status(201).json({
+      message: 'Thêm quy cách thành công!',
+      data: newSize,
+    });
+  } catch (error) {
+    console.error('Lỗi khi tạo quy cách:', error);
+    return res.status(500).json({ message: 'Lỗi hệ thống khi tạo quy cách!' });
+  }
+};
