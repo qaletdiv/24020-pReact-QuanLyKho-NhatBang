@@ -250,23 +250,24 @@ export const PurchaseOrderDetailScreen: React.FC = () => {
   const isEditMode = Boolean(id && id !== 'create')
   const currentUser = useSelector((state: RootState) => state.auth?.user)
 
-  // Gọi API suppliers kèm ép kiểu tường minh
-  const { data: suppliers = [] } = useQuery<SupplierOption[]>({
-    queryKey: ['suppliers'],
-    queryFn: async (): Promise<SupplierOption[]> => {
-      const res = await getSuppliers()
-      return (res || []) as SupplierOption[]
-    },
-  })
 
-  // Gọi API products kèm ép kiểu tường minh tránh lỗi NoInfer/never[]
-  const { data: products = [] } = useQuery<ProductOption[]>({
-    queryKey: ['products'],
-    queryFn: async (): Promise<ProductOption[]> => {
-      const res = await getProducts()
-      return (res || []) as ProductOption[]
-    },
+  const { data: supplierResponse } = useQuery({
+    queryKey: ['suppliers', 'all'],
+    queryFn: () => getSuppliers(undefined, 1, 100),
   })
+  const suppliers: SupplierOption[] = Array.isArray(supplierResponse)
+    ? supplierResponse
+    : ((supplierResponse?.data || []) as unknown as SupplierOption[])
+
+ 
+  const { data: productResponse } = useQuery({
+    queryKey: ['products', 'all'],
+    queryFn: () => getProducts(undefined, 1, 100),
+  })
+  const products: ProductOption[] = Array.isArray(productResponse)
+    ? productResponse
+    : ((productResponse?.data || []) as unknown as ProductOption[])
+
 
   const { data: orderDetail, isLoading: isLoadingDetail } = useQuery({
     queryKey: ['purchaseOrder', id],
@@ -312,8 +313,8 @@ export const PurchaseOrderDetailScreen: React.FC = () => {
           id={id}
           isEditMode={isEditMode}
           defaultData={defaultData}
-          suppliers={suppliers as SupplierOption[]}
-          products={products as ProductOption[]}
+          suppliers={suppliers}
+          products={products}
           orderCode={orderDetail?.orderCode}
           currentUserId={currentUser?.id}
         />
