@@ -1,6 +1,5 @@
 import { apiClient } from './apiClient'
 
-
 export interface PurchaseOrderItem {
   productId: number
   productCode?: string
@@ -23,9 +22,18 @@ export interface PurchaseOrder {
   items?: PurchaseOrderItem[]
 }
 
+export interface PaginationMeta {
+  totalItems: number
+  totalPages: number
+  currentPage: number
+  limit: number
+}
+
 export interface OrderFilterParams {
   orderCode?: string
   supplierName?: string
+  page?: number
+  limit?: number
 }
 
 export interface OrderItemPayload {
@@ -41,23 +49,44 @@ export interface CreateOrderPayload {
   items: OrderItemPayload[]
 }
 
-interface PurchaseOrderListResponse {
-  orders?: PurchaseOrder[]
-  data?: PurchaseOrder[]
+export interface PurchaseOrderListResponse {
+  data: PurchaseOrder[]
+  pagination: PaginationMeta
+  orders?: PurchaseOrder[] 
 }
 
-interface PurchaseOrderDetailResponse {
+export interface PurchaseOrderDetailResponse {
   order?: PurchaseOrder
   data?: PurchaseOrder
 }
 
+export const getPurchaseOrders = async (
+  params?: OrderFilterParams
+): Promise<PurchaseOrderListResponse> => {
+  const response = await apiClient.get('/purchase/purchase-orders', { params })
 
-export const getPurchaseOrders = async (params?: OrderFilterParams): Promise<PurchaseOrder[]> => {
-  const response = await apiClient.get<PurchaseOrder[] | PurchaseOrderListResponse>('/purchase/purchase-orders', { params })
+
   if (Array.isArray(response.data)) {
-    return response.data
+    return {
+      data: response.data,
+      pagination: {
+        totalItems: response.data.length,
+        totalPages: 1,
+        currentPage: 1,
+        limit: response.data.length || 10,
+      },
+    }
   }
-  return response.data.orders || response.data.data || []
+
+  return {
+    data: response.data?.data || response.data?.orders || [],
+    pagination: response.data?.pagination || {
+      totalItems: 0,
+      totalPages: 1,
+      currentPage: 1,
+      limit: 10,
+    },
+  }
 }
 
 

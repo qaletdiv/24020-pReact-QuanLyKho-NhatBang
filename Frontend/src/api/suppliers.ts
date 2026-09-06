@@ -18,16 +18,53 @@ export interface SupplierPayload {
   address?: string
   note?: string
 }
+export interface PaginationMeta {
+  totalItems: number
+  totalPages: number
+  currentPage: number
+  limit: number
+}
 
-export const getSuppliers = async (keyword?: string): Promise<SupplierItem[]> => {
-  try {
-    const res = await apiClient.get('/supplier/suppliers', {
-      params: keyword ? { keyword } : {},
-    })
-    return Array.isArray(res.data) ? res.data : res.data?.suppliers || []
-  } catch (error) {
-    console.error('Lỗi khi lấy danh sách nhà cung cấp:', error)
-    return []
+export interface SupplierApiResponse {
+  data: SupplierItem[]
+  pagination: PaginationMeta
+}
+export const getSuppliers = async (
+  keyword?: string,
+  page: number = 1,
+  limit: number = 10
+): Promise<SupplierApiResponse> => {
+  const res = await apiClient.get('/supplier/suppliers', {
+    params: {
+      keyword: keyword || undefined,
+      page,
+      limit,
+    },
+  })
+
+  const resData = res.data
+
+
+  if (Array.isArray(resData)) {
+    return {
+      data: resData,
+      pagination: {
+        totalItems: resData.length,
+        totalPages: 1,
+        currentPage: 1,
+        limit: resData.length || 10,
+      },
+    }
+  }
+
+  return {
+    data: resData.data ?? resData.suppliers ?? [],
+    pagination: resData.pagination ?? {
+      totalItems: 0,
+      totalPages: 1,
+      currentPage: 1,
+      limit: 10,
+    },
   }
 }
 

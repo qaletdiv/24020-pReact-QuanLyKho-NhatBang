@@ -16,66 +16,83 @@ interface CreateOrderBody {
     items: OrderDetailInput[]
 }
 // get lay danh sach don mua hang 
-export const getPurchaseOrders = async(req : Request , res : Response) => {
-
+export const getPurchaseOrders = async (req: Request, res: Response) => {
     try {
-        const {orderCode , supplierName} = req.query ;
-        const whereCondition : any = {} ;
-        if ( orderCode && typeof orderCode === 'string') {
+        const { orderCode, supplierName } = req.query;
+        const page = Math.max(1, Number(req.query.page) || 1);
+        const limit = Math.max(1, Number(req.query.limit) || 10);
+        const skip = (page - 1) * limit;
+
+        const whereCondition: any = {};
+
+        if (orderCode && typeof orderCode === 'string' && orderCode.trim() !== '') {
             whereCondition.code = {
-                contains : orderCode.trim() ,
-            }
+                contains: orderCode.trim(),
+            };
         }
+
         if (supplierName && typeof supplierName === 'string' && supplierName.trim() !== '') {
             whereCondition.supplier = {
                 name: {
                     contains: supplierName.trim(),
                 },
-            }
+            };
         }
-
-        const orders = await prisma.purchaseOrder.findMany({
-            where : whereCondition ,
-            select : {
-                id : true ,
-                code : true ,
-                issueDate : true ,
-                totalAmount: true ,
-                status : true ,
-                supplier : {
-                    select : {
-                        name : true ,
+        const [totalItems, orders] = await Promise.all([
+            prisma.purchaseOrder.count({ where: whereCondition }),
+            prisma.purchaseOrder.findMany({
+                where: whereCondition,
+                skip,
+                take: limit,
+                select: {
+                    id: true,
+                    code: true,
+                    issueDate: true,
+                    totalAmount: true,
+                    status: true,
+                    supplier: {
+                        select: {
+                            name: true,
+                        },
                     },
-
-                } ,
-                user : {
-                    select : {
-                        username : true ,
+                    user: {
+                        select: {
+                            username: true,
+                        },
                     },
                 },
-            },
-            orderBy: {
-                issueDate: 'desc',
-            },
-        }) ; 
+                orderBy: {
+                    issueDate: 'desc',
+                },
+            }),
+        ]);
+
         const formatOrders = orders.map((order) => ({
-            id : order.id ,
-            orderCode : order.code ,
-            supplierName : order.supplier.name ,
-            purchaseDate : order.issueDate ,
-            createdByName : order.user.username ,
-            totalAmount : Number(order.totalAmount) ,
-            status : order.status
-        }))
+            id: order.id,
+            orderCode: order.code,
+            supplierName: order.supplier?.name || '',
+            purchaseDate: order.issueDate,
+            createdByName: order.user?.username || '',
+            totalAmount: Number(order.totalAmount),
+            status: order.status,
+        }));
 
-        return res.status(200).json(formatOrders) ;
+        const totalPages = Math.ceil(totalItems / limit);
 
+        return res.status(200).json({
+            data: formatOrders,
+            pagination: {
+                totalItems,
+                totalPages,
+                currentPage: page,
+                limit,
+            },
+        });
     } catch (error) {
-        console.error('Lỗi khi lấy danh sách đơn mua hàng:', error) ;
-        return res.status(500).json({ message: 'Lỗi hệ thống phía Server!' })
+        console.error('Lỗi khi lấy danh sách đơn mua hàng:', error);
+        return res.status(500).json({ message: 'Lỗi hệ thống phía Server!' });
     }
-}
-
+};
 // Get lay chi tiet 1 don hang 
 export const getPurchaseOrderById = async ( req : Request , res : Response) => {
     try {

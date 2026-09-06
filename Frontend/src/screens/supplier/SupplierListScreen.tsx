@@ -7,10 +7,11 @@ import { Header } from "../../components/layout/Header";
 import { Button } from "../../components/ui/Button";
 import { SupplierSearchBar } from "../../components/supplier/SupplierSearchBar";
 import { SupplierTable } from "../../components/supplier/SupplierTable";
+import { Pagination } from "../../components/ui/Pagination";
 import {
   getSuppliers,
   deleteSupplier,
-  type SupplierItem,
+  type SupplierApiResponse,
 } from "../../api/suppliers";
 
 interface ApiErrorResponse {
@@ -21,18 +22,31 @@ export const SupplierListScreen: React.FC = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [searchKeyword, setSearchKeyword] = useState("");
+  const [page, setPage] = useState(1);
+  const limit = 4;
+
+  const handleSearchChange = (kw: string) => {
+    setSearchKeyword(kw);
+    setPage(1);
+  };
 
   const {
-    data: suppliers = [],
+    data: response,
     isLoading,
     isError,
-  } = useQuery<SupplierItem[]>({
-    queryKey: ["suppliers", searchKeyword],
-    queryFn: async (): Promise<SupplierItem[]> => {
-      const res = await getSuppliers(searchKeyword);
-      return (res || []) as SupplierItem[];
-    },
+  } = useQuery<SupplierApiResponse>({
+    queryKey: ["suppliers", searchKeyword, page],
+    queryFn: () => getSuppliers(searchKeyword, page, limit),
+    placeholderData: (prev) => prev,
   });
+
+  const suppliers = response?.data || [];
+  const pagination = response?.pagination || {
+    totalItems: 0,
+    totalPages: 1,
+    currentPage: 1,
+    limit,
+  };
 
   const deleteMutation = useMutation({
     mutationFn: (id: number) => deleteSupplier(id),
@@ -73,16 +87,24 @@ export const SupplierListScreen: React.FC = () => {
 
         <SupplierSearchBar
           value={searchKeyword}
-          onChange={setSearchKeyword}
-          totalCount={suppliers.length}
+          onChange={handleSearchChange}
+          totalCount={pagination.totalItems}
         />
 
         <SupplierTable
-          suppliers={suppliers as SupplierItem[]}
+          suppliers={suppliers}
           isLoading={isLoading}
           isError={isError}
           onRowClick={(id) => navigate(`/suppliers/${id}`)}
           onDeleteClick={handleDeleteSupplier}
+        />
+
+        <Pagination
+          currentPage={pagination.currentPage}
+          totalPages={pagination.totalPages}
+          totalItems={pagination.totalItems}
+          limit={pagination.limit}
+          onPageChange={(newPage) => setPage(newPage)}
         />
       </main>
     </div>

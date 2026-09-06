@@ -4,6 +4,10 @@ import { prisma } from '../config/prisma.js'
 export const getSuppliers = async (req: Request, res: Response) => {
   try {
     const { keyword } = req.query;
+    const page = Math.max(1, Number(req.query.page) || 1);
+    const limit = Math.max(1, Number(req.query.limit) || 10);
+    const skip = (page - 1) * limit;
+
     const whereCondition: any = {};
 
     if (keyword && typeof keyword === 'string' && keyword.trim() !== '') {
@@ -14,13 +18,27 @@ export const getSuppliers = async (req: Request, res: Response) => {
         { phone: { contains: search } },
       ];
     }
+    const [totalItems, suppliers] = await Promise.all([
+      prisma.supplier.count({ where: whereCondition }),
+      prisma.supplier.findMany({
+        where: whereCondition,
+        skip,
+        take: limit,
+        orderBy: { id: 'desc' },
+      }),
+    ]);
 
-    const suppliers = await prisma.supplier.findMany({
-      where: whereCondition,
-      orderBy: { id: 'desc' },
+    const totalPages = Math.ceil(totalItems / limit);
+
+    return res.status(200).json({
+      data: suppliers,
+      pagination: {
+        totalItems,
+        totalPages,
+        currentPage: page,
+        limit,
+      },
     });
-
-    return res.status(200).json(suppliers);
   } catch (error) {
     console.error('Lỗi khi lấy danh sách nhà cung cấp:', error);
     return res.status(500).json({ message: 'Lỗi hệ thống khi lấy danh sách!' });
