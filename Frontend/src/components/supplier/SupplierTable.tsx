@@ -79,7 +79,7 @@ export const SupplierTable: React.FC<SupplierTableProps> = ({
                           e.stopPropagation()
                           onRowClick(item.id)
                         }}
-                        className="text-xs text-blue-600 hover:text-blue-800 font-semibold"
+                        className="text-xs bg-green-600 hover:bg-green-700 text-white font-semibold px-2.5 py-1 rounded transition-colors"
                       >
                         Sửa
                       </button>
@@ -89,7 +89,7 @@ export const SupplierTable: React.FC<SupplierTableProps> = ({
                           e.stopPropagation()
                           onDeleteClick(item.id, item.name)
                         }}
-                        className="text-xs text-red-600 hover:text-red-800 font-semibold"
+                        className="text-xs bg-red-600 hover:bg-red-700 text-white font-semibold px-2.5 py-1 rounded transition-colors"
                       >
                         Xóa
                       </button>

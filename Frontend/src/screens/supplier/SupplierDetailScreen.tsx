@@ -113,7 +113,7 @@ const SupplierFormView: React.FC<SupplierFormViewProps> = ({
           <button
             type="button"
             onClick={() => navigate('/suppliers')}
-            className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
+            className="whitespace-nowrap px-6 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
           >
             Quay lại
           </button>

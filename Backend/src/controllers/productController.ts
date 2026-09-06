@@ -5,26 +5,35 @@ import { prisma } from "../config/prisma.js";
 export const getProducts = async (req: Request, res: Response) => {
   try {
     const { keyword } = req.query;
+    const page = Math.max(1, Number(req.query.page) || 1);
+    const limit = Math.max(1, Number(req.query.limit) || 10);
+    const skip = (page - 1) * limit;
+
     const whereCondition: any = {};
 
-    if (keyword && typeof keyword === "string") {
+    if (keyword && typeof keyword === "string" && keyword.trim() !== "") {
+      const search = keyword.trim();
       whereCondition.OR = [
-        { name: { contains: keyword.trim() } },
-        { code: { contains: keyword.trim() } },
+        { name: { contains: search } },
+        { code: { contains: search } },
       ];
     }
-
-    const products = await prisma.product.findMany({
-      where: whereCondition,
-      include: {
-        size: {
-          select: { sizeName: true },
+    const [totalItems, products] = await Promise.all([
+      prisma.product.count({ where: whereCondition }),
+      prisma.product.findMany({
+        where: whereCondition,
+        skip,
+        take: limit,
+        include: {
+          size: {
+            select: { sizeName: true },
+          },
         },
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
+        orderBy: {
+          createdAt: "desc",
+        },
+      }),
+    ]);
 
     const formattedProducts = products.map((item) => ({
       id: item.id,
@@ -37,7 +46,17 @@ export const getProducts = async (req: Request, res: Response) => {
       imageUrl: item.imageUrl,
     }));
 
-    return res.status(200).json(formattedProducts);
+    const totalPages = Math.ceil(totalItems / limit);
+
+    return res.status(200).json({
+      data: formattedProducts,
+      pagination: {
+        totalItems,
+        totalPages,
+        currentPage: page,
+        limit,
+      },
+    });
   } catch (error) {
     console.error("Lỗi lấy danh sách sản phẩm:", error);
     return res.status(500).json({ message: "Lỗi hệ thống phía Server!" });

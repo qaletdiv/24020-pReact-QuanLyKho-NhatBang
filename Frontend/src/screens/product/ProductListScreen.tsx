@@ -6,6 +6,7 @@ import { Header } from "../../components/layout/Header";
 import { Button } from "../../components/ui/Button";
 import { ProductSearchBar } from "../../components/product/ProductSearchBar";
 import { ProductTable } from "../../components/product/ProductTable";
+import { Pagination } from "../../components/ui/Pagination";
 
 import { getProducts } from "../../api/products";
 
@@ -20,21 +21,49 @@ export interface ProductItem {
   imageUrl?: string;
 }
 
+export interface PaginationMeta {
+  totalItems: number;
+  totalPages: number;
+  currentPage: number;
+  limit: number;
+}
+
+export interface ProductApiResponse {
+  data: ProductItem[];
+  pagination: PaginationMeta;
+}
+
 export const ProductListScreen: React.FC = () => {
   const navigate = useNavigate();
   const [searchKeyword, setSearchKeyword] = useState("");
+  const [page, setPage] = useState(1);
+  const limit = 5;
+
+  const handleSearchChange = (kw: string) => {
+    setSearchKeyword(kw);
+    setPage(1);
+  };
 
   const {
-    data: products = [],
+    data: response,
     isLoading,
     isError,
-  } = useQuery<ProductItem[]>({
-    queryKey: ["products", searchKeyword],
-    queryFn: async (): Promise<ProductItem[]> => {
-      const res = await getProducts(searchKeyword);
-      return (res || []) as ProductItem[];
+  } = useQuery<ProductApiResponse>({
+    queryKey: ["products", searchKeyword, page],
+    queryFn: async (): Promise<ProductApiResponse> => {
+      const res = await getProducts(searchKeyword, page, limit);
+      return res as ProductApiResponse;
     },
+    placeholderData: (prev) => prev, 
   });
+
+  const products = response?.data || [];
+  const pagination = response?.pagination || {
+    totalItems: 0,
+    totalPages: 1,
+    currentPage: 1,
+    limit,
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -54,15 +83,23 @@ export const ProductListScreen: React.FC = () => {
 
         <ProductSearchBar
           value={searchKeyword}
-          onChange={setSearchKeyword}
-          totalCount={products.length}
+          onChange={handleSearchChange}
+          totalCount={pagination.totalItems}
         />
 
         <ProductTable
-          products={products as ProductItem[]}
+          products={products}
           isLoading={isLoading}
           isError={isError}
           onRowClick={(id) => navigate(`/products/${id}`)}
+        />
+
+        <Pagination
+          currentPage={pagination.currentPage}
+          totalPages={pagination.totalPages}
+          totalItems={pagination.totalItems}
+          limit={pagination.limit}
+          onPageChange={(newPage) => setPage(newPage)}
         />
       </main>
     </div>
