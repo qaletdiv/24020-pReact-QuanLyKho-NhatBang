@@ -1,6 +1,6 @@
 import { type Request, type Response } from 'express'
 import { prisma } from '../config/prisma.js';
-import {type authenticatedRequest} from "../middlewares/authenticateToken.js"
+import { type AuthenticatedRequest} from "../middlewares/authenticateToken.js"
 import { assert } from 'node:console';
 
 import { it } from 'node:test';
@@ -154,7 +154,7 @@ export const getPurchaseOrderById = async ( req : Request , res : Response) => {
 }
 
 
-export const createPurchaseOrder = async (req : authenticatedRequest , res : Response) => {
+export const createPurchaseOrder = async (req : AuthenticatedRequest , res : Response) => {
     try {
         const {supplierId , note , items} = req.body as CreateOrderBody ;
         const userId = req.user?.id 
@@ -287,7 +287,7 @@ export const confirmedPurchaseOrder = async (req : Request  , res : Response) =>
 }
 
 // patch : xac nhan nhap kho (confirmed -> imported)
-export const importPurchaseOrder = async ( req : authenticatedRequest , res : Response) => {
+export const importPurchaseOrder = async ( req : AuthenticatedRequest , res : Response) => {
     try {
         const orderId = Number(req.params.id) ;
         const userId = req.user?.id ;

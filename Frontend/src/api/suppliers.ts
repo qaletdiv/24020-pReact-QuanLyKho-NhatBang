@@ -79,7 +79,7 @@ export const createSupplier = async (payload: SupplierPayload) => {
 }
 
 export const updateSupplier = async (id: string | number, payload: SupplierPayload) => {
-  const res = await apiClient.put(`/supplier/suppliers/${id}`, payload)
+  const res = await apiClient.patch(`/supplier/suppliers/${id}`, payload)
   return res.data
 }
 
