@@ -5,6 +5,7 @@ import authRouter from './routes/authRouter.js'
 import purchaseOrderRoutes from './routes/purchaseOrderRoutes.js'
 import productRoutes from './routes/productRoutes.js'
 import supplierRoutes from './routes/supplierRoutes.js'
+import inventoryRouter from  './routes/inventoryRouter.js'
 import { prisma } from './config/prisma.js'
 dotenv.config();
 
@@ -20,6 +21,7 @@ app.use('/api/auth' ,authRouter) ;
 app.use('/api/purchase' , purchaseOrderRoutes)
 app.use('/api/product', productRoutes)
 app.use('/api/supplier', supplierRoutes)
+app.use('/api/inventory', inventoryRouter)
 app.get('/', (req: Request, res: Response) => {
     res.status(200).json({message :' Backend Node.js + TypeScript '});
 });

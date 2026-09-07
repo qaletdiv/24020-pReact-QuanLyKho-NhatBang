@@ -9,6 +9,7 @@ import { ProductListScreen } from './screens/product/ProductListScreen'
 import { ProductDetailScreen } from './screens/product/ProductDetailScreen' 
 import { SupplierListScreen } from './screens/supplier/SupplierListScreen'
 import { SupplierDetailScreen } from './screens/supplier/SupplierDetailScreen'
+import { InventoryCheckScreen } from './screens/inventory/InventoryCheckScreen'
 
 function App() {
   return (
@@ -33,6 +34,7 @@ function App() {
           <Route path="/suppliers" element={<SupplierListScreen />} />
           <Route path="/suppliers/create" element={<SupplierDetailScreen />} />
           <Route path="/suppliers/:id" element={<SupplierDetailScreen />} />
+          <Route path="/inventory" element={<InventoryCheckScreen/>}/>
         </Route>
 
         <Route path="*" element={<Navigate to="/login" replace />} />
