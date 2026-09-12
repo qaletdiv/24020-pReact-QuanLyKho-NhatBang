@@ -18,7 +18,7 @@ function App() {
         <Route path="/login" element={<LoginScreen />} />
 
         <Route element={<ProtectedRoute />}>
-          <Route path="/" element={<Navigate to="/purchase-orders" replace />} />
+          {/* <Route path="/" element={<Navigate to="/purchase-orders" replace />} /> */}
 
     
           <Route path="/purchase-orders" element={<PurchaseOrderListScreen />} />
@@ -27,8 +27,8 @@ function App() {
 
       
           <Route path="/products" element={<ProductListScreen />} />
-          <Route path="/products/create" element={<ProductDetailScreen />} /> {/* <-- Thêm route này */}
-          <Route path="/products/:id" element={<ProductDetailScreen />} />     {/* <-- Thêm route này */}
+          <Route path="/products/create" element={<ProductDetailScreen />} />
+          <Route path="/products/:id" element={<ProductDetailScreen />} />    
 
      
           <Route path="/suppliers" element={<SupplierListScreen />} />
